@@ -1,0 +1,390 @@
+
+SPI_3_Slave.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         0000025c  00000000  00000000  00000054  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .stab         00000630  00000000  00000000  000002b0  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  2 .stabstr      00000425  00000000  00000000  000008e0  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	0c 94 2a 00 	jmp	0x54	; 0x54 <__ctors_end>
+   4:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+   8:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+   c:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  10:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  14:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  18:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  1c:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  20:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  24:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  28:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  2c:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  30:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  34:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  38:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  3c:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  40:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  44:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  48:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  4c:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+  50:	0c 94 34 00 	jmp	0x68	; 0x68 <__bad_interrupt>
+
+00000054 <__ctors_end>:
+  54:	11 24       	eor	r1, r1
+  56:	1f be       	out	0x3f, r1	; 63
+  58:	cf e5       	ldi	r28, 0x5F	; 95
+  5a:	d8 e0       	ldi	r29, 0x08	; 8
+  5c:	de bf       	out	0x3e, r29	; 62
+  5e:	cd bf       	out	0x3d, r28	; 61
+  60:	0e 94 e5 00 	call	0x1ca	; 0x1ca <main>
+  64:	0c 94 2c 01 	jmp	0x258	; 0x258 <_exit>
+
+00000068 <__bad_interrupt>:
+  68:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+0000006c <GLobalInterruptEnable>:
+#include "STD_Types.h"
+#include "BIT_MATH.h"
+
+#include "Global_Interface.h"
+void GLobalInterruptEnable()
+{
+  6c:	df 93       	push	r29
+  6e:	cf 93       	push	r28
+  70:	cd b7       	in	r28, 0x3d	; 61
+  72:	de b7       	in	r29, 0x3e	; 62
+	SET_BIT(SREG,GLOBAL_BIT);
+  74:	af e5       	ldi	r26, 0x5F	; 95
+  76:	b0 e0       	ldi	r27, 0x00	; 0
+  78:	ef e5       	ldi	r30, 0x5F	; 95
+  7a:	f0 e0       	ldi	r31, 0x00	; 0
+  7c:	80 81       	ld	r24, Z
+  7e:	80 68       	ori	r24, 0x80	; 128
+  80:	8c 93       	st	X, r24
+
+}
+  82:	cf 91       	pop	r28
+  84:	df 91       	pop	r29
+  86:	08 95       	ret
+
+00000088 <GLobalInterruptDisable>:
+void GLobalInterruptDisable()
+{
+  88:	df 93       	push	r29
+  8a:	cf 93       	push	r28
+  8c:	cd b7       	in	r28, 0x3d	; 61
+  8e:	de b7       	in	r29, 0x3e	; 62
+	CLR_BIT(SREG,GLOBAL_BIT);
+  90:	af e5       	ldi	r26, 0x5F	; 95
+  92:	b0 e0       	ldi	r27, 0x00	; 0
+  94:	ef e5       	ldi	r30, 0x5F	; 95
+  96:	f0 e0       	ldi	r31, 0x00	; 0
+  98:	80 81       	ld	r24, Z
+  9a:	8f 77       	andi	r24, 0x7F	; 127
+  9c:	8c 93       	st	X, r24
+}
+  9e:	cf 91       	pop	r28
+  a0:	df 91       	pop	r29
+  a2:	08 95       	ret
+
+000000a4 <SPI_MasterInit>:
+#include "BIT_MATH.h"
+#include "GPIO_registers.h"
+#include "SPI_3.h"
+
+void SPI_MasterInit(void)
+{
+  a4:	df 93       	push	r29
+  a6:	cf 93       	push	r28
+  a8:	cd b7       	in	r28, 0x3d	; 61
+  aa:	de b7       	in	r29, 0x3e	; 62
+
+	// Enable MOSI  Set MOSI as an output
+	SET_BIT(SPI_REG->SPCR,5);
+  ac:	ad e2       	ldi	r26, 0x2D	; 45
+  ae:	b0 e0       	ldi	r27, 0x00	; 0
+  b0:	ed e2       	ldi	r30, 0x2D	; 45
+  b2:	f0 e0       	ldi	r31, 0x00	; 0
+  b4:	80 81       	ld	r24, Z
+  b6:	80 62       	ori	r24, 0x20	; 32
+  b8:	8c 93       	st	X, r24
+	CLR_BIT(SPI_REG->SPCR,3);
+  ba:	ad e2       	ldi	r26, 0x2D	; 45
+  bc:	b0 e0       	ldi	r27, 0x00	; 0
+  be:	ed e2       	ldi	r30, 0x2D	; 45
+  c0:	f0 e0       	ldi	r31, 0x00	; 0
+  c2:	80 81       	ld	r24, Z
+  c4:	87 7f       	andi	r24, 0xF7	; 247
+  c6:	8c 93       	st	X, r24
+	CLR_BIT(SPI_REG->SPCR,2);
+  c8:	ad e2       	ldi	r26, 0x2D	; 45
+  ca:	b0 e0       	ldi	r27, 0x00	; 0
+  cc:	ed e2       	ldi	r30, 0x2D	; 45
+  ce:	f0 e0       	ldi	r31, 0x00	; 0
+  d0:	80 81       	ld	r24, Z
+  d2:	8b 7f       	andi	r24, 0xFB	; 251
+  d4:	8c 93       	st	X, r24
+	CLR_BIT(SPI_REG->SPSR,0);
+  d6:	ad e2       	ldi	r26, 0x2D	; 45
+  d8:	b0 e0       	ldi	r27, 0x00	; 0
+  da:	ed e2       	ldi	r30, 0x2D	; 45
+  dc:	f0 e0       	ldi	r31, 0x00	; 0
+  de:	81 81       	ldd	r24, Z+1	; 0x01
+  e0:	8e 7f       	andi	r24, 0xFE	; 254
+  e2:	11 96       	adiw	r26, 0x01	; 1
+  e4:	8c 93       	st	X, r24
+	CLR_BIT(SPI_REG->SPCR,0);
+  e6:	ad e2       	ldi	r26, 0x2D	; 45
+  e8:	b0 e0       	ldi	r27, 0x00	; 0
+  ea:	ed e2       	ldi	r30, 0x2D	; 45
+  ec:	f0 e0       	ldi	r31, 0x00	; 0
+  ee:	80 81       	ld	r24, Z
+  f0:	8e 7f       	andi	r24, 0xFE	; 254
+  f2:	8c 93       	st	X, r24
+	SET_BIT(SPI_REG->SPCR,1);
+  f4:	ad e2       	ldi	r26, 0x2D	; 45
+  f6:	b0 e0       	ldi	r27, 0x00	; 0
+  f8:	ed e2       	ldi	r30, 0x2D	; 45
+  fa:	f0 e0       	ldi	r31, 0x00	; 0
+  fc:	80 81       	ld	r24, Z
+  fe:	82 60       	ori	r24, 0x02	; 2
+ 100:	8c 93       	st	X, r24
+	SET_BIT(SPI_REG->SPCR,4);
+ 102:	ad e2       	ldi	r26, 0x2D	; 45
+ 104:	b0 e0       	ldi	r27, 0x00	; 0
+ 106:	ed e2       	ldi	r30, 0x2D	; 45
+ 108:	f0 e0       	ldi	r31, 0x00	; 0
+ 10a:	80 81       	ld	r24, Z
+ 10c:	80 61       	ori	r24, 0x10	; 16
+ 10e:	8c 93       	st	X, r24
+	SET_BIT(SPI_REG->SPCR,6);
+ 110:	ad e2       	ldi	r26, 0x2D	; 45
+ 112:	b0 e0       	ldi	r27, 0x00	; 0
+ 114:	ed e2       	ldi	r30, 0x2D	; 45
+ 116:	f0 e0       	ldi	r31, 0x00	; 0
+ 118:	80 81       	ld	r24, Z
+ 11a:	80 64       	ori	r24, 0x40	; 64
+ 11c:	8c 93       	st	X, r24
+
+}
+ 11e:	cf 91       	pop	r28
+ 120:	df 91       	pop	r29
+ 122:	08 95       	ret
+
+00000124 <SPI_MasterTransmit>:
+void SPI_MasterTransmit(u8 cData){
+ 124:	df 93       	push	r29
+ 126:	cf 93       	push	r28
+ 128:	00 d0       	rcall	.+0      	; 0x12a <SPI_MasterTransmit+0x6>
+ 12a:	cd b7       	in	r28, 0x3d	; 61
+ 12c:	de b7       	in	r29, 0x3e	; 62
+ 12e:	8a 83       	std	Y+2, r24	; 0x02
+	u8 Transfere_Data = cData;
+ 130:	8a 81       	ldd	r24, Y+2	; 0x02
+ 132:	89 83       	std	Y+1, r24	; 0x01
+	SPI_REG->SPDR = Transfere_Data;
+ 134:	ed e2       	ldi	r30, 0x2D	; 45
+ 136:	f0 e0       	ldi	r31, 0x00	; 0
+ 138:	89 81       	ldd	r24, Y+1	; 0x01
+ 13a:	82 83       	std	Z+2, r24	; 0x02
+	while(!(GET_BIT(SPI_REG->SPSR,7)));
+ 13c:	ed e2       	ldi	r30, 0x2D	; 45
+ 13e:	f0 e0       	ldi	r31, 0x00	; 0
+ 140:	81 81       	ldd	r24, Z+1	; 0x01
+ 142:	88 23       	and	r24, r24
+ 144:	dc f7       	brge	.-10     	; 0x13c <SPI_MasterTransmit+0x18>
+
+}
+ 146:	0f 90       	pop	r0
+ 148:	0f 90       	pop	r0
+ 14a:	cf 91       	pop	r28
+ 14c:	df 91       	pop	r29
+ 14e:	08 95       	ret
+
+00000150 <SPI_SlaveInit>:
+void SPI_SlaveInit(void){
+ 150:	df 93       	push	r29
+ 152:	cf 93       	push	r28
+ 154:	cd b7       	in	r28, 0x3d	; 61
+ 156:	de b7       	in	r29, 0x3e	; 62
+
+	// Set MISO as an output
+	SET_BIT(SPI_REG->SPCR,5);
+ 158:	ad e2       	ldi	r26, 0x2D	; 45
+ 15a:	b0 e0       	ldi	r27, 0x00	; 0
+ 15c:	ed e2       	ldi	r30, 0x2D	; 45
+ 15e:	f0 e0       	ldi	r31, 0x00	; 0
+ 160:	80 81       	ld	r24, Z
+ 162:	80 62       	ori	r24, 0x20	; 32
+ 164:	8c 93       	st	X, r24
+	CLR_BIT(SPI_REG->SPCR,3);
+ 166:	ad e2       	ldi	r26, 0x2D	; 45
+ 168:	b0 e0       	ldi	r27, 0x00	; 0
+ 16a:	ed e2       	ldi	r30, 0x2D	; 45
+ 16c:	f0 e0       	ldi	r31, 0x00	; 0
+ 16e:	80 81       	ld	r24, Z
+ 170:	87 7f       	andi	r24, 0xF7	; 247
+ 172:	8c 93       	st	X, r24
+	CLR_BIT(SPI_REG->SPCR,2);
+ 174:	ad e2       	ldi	r26, 0x2D	; 45
+ 176:	b0 e0       	ldi	r27, 0x00	; 0
+ 178:	ed e2       	ldi	r30, 0x2D	; 45
+ 17a:	f0 e0       	ldi	r31, 0x00	; 0
+ 17c:	80 81       	ld	r24, Z
+ 17e:	8b 7f       	andi	r24, 0xFB	; 251
+ 180:	8c 93       	st	X, r24
+	CLR_BIT(SPI_REG->SPCR,4);
+ 182:	ad e2       	ldi	r26, 0x2D	; 45
+ 184:	b0 e0       	ldi	r27, 0x00	; 0
+ 186:	ed e2       	ldi	r30, 0x2D	; 45
+ 188:	f0 e0       	ldi	r31, 0x00	; 0
+ 18a:	80 81       	ld	r24, Z
+ 18c:	8f 7e       	andi	r24, 0xEF	; 239
+ 18e:	8c 93       	st	X, r24
+	SET_BIT(SPI_REG->SPCR,6);
+ 190:	ad e2       	ldi	r26, 0x2D	; 45
+ 192:	b0 e0       	ldi	r27, 0x00	; 0
+ 194:	ed e2       	ldi	r30, 0x2D	; 45
+ 196:	f0 e0       	ldi	r31, 0x00	; 0
+ 198:	80 81       	ld	r24, Z
+ 19a:	80 64       	ori	r24, 0x40	; 64
+ 19c:	8c 93       	st	X, r24
+}
+ 19e:	cf 91       	pop	r28
+ 1a0:	df 91       	pop	r29
+ 1a2:	08 95       	ret
+
+000001a4 <SPI_SlaveReceive>:
+u8 SPI_SlaveReceive(void){
+ 1a4:	df 93       	push	r29
+ 1a6:	cf 93       	push	r28
+ 1a8:	0f 92       	push	r0
+ 1aa:	cd b7       	in	r28, 0x3d	; 61
+ 1ac:	de b7       	in	r29, 0x3e	; 62
+	u8 returned_Data = SPI_REG->SPDR;
+ 1ae:	ed e2       	ldi	r30, 0x2D	; 45
+ 1b0:	f0 e0       	ldi	r31, 0x00	; 0
+ 1b2:	82 81       	ldd	r24, Z+2	; 0x02
+ 1b4:	89 83       	std	Y+1, r24	; 0x01
+
+	while(!(GET_BIT(SPI_REG->SPSR,7)));
+ 1b6:	ed e2       	ldi	r30, 0x2D	; 45
+ 1b8:	f0 e0       	ldi	r31, 0x00	; 0
+ 1ba:	81 81       	ldd	r24, Z+1	; 0x01
+ 1bc:	88 23       	and	r24, r24
+ 1be:	dc f7       	brge	.-10     	; 0x1b6 <SPI_SlaveReceive+0x12>
+	return returned_Data;
+ 1c0:	89 81       	ldd	r24, Y+1	; 0x01
+}
+ 1c2:	0f 90       	pop	r0
+ 1c4:	cf 91       	pop	r28
+ 1c6:	df 91       	pop	r29
+ 1c8:	08 95       	ret
+
+000001ca <main>:
+#include "GPIO_registers.h"
+#include "Global_Interface.h"
+#include "SPI_3.h"
+
+int main()
+{
+ 1ca:	df 93       	push	r29
+ 1cc:	cf 93       	push	r28
+ 1ce:	0f 92       	push	r0
+ 1d0:	cd b7       	in	r28, 0x3d	; 61
+ 1d2:	de b7       	in	r29, 0x3e	; 62
+	SET_BIT(DDRA,0); CLR_BIT(PORTA,0); // LED
+ 1d4:	aa e3       	ldi	r26, 0x3A	; 58
+ 1d6:	b0 e0       	ldi	r27, 0x00	; 0
+ 1d8:	ea e3       	ldi	r30, 0x3A	; 58
+ 1da:	f0 e0       	ldi	r31, 0x00	; 0
+ 1dc:	80 81       	ld	r24, Z
+ 1de:	81 60       	ori	r24, 0x01	; 1
+ 1e0:	8c 93       	st	X, r24
+ 1e2:	ab e3       	ldi	r26, 0x3B	; 59
+ 1e4:	b0 e0       	ldi	r27, 0x00	; 0
+ 1e6:	eb e3       	ldi	r30, 0x3B	; 59
+ 1e8:	f0 e0       	ldi	r31, 0x00	; 0
+ 1ea:	80 81       	ld	r24, Z
+ 1ec:	8e 7f       	andi	r24, 0xFE	; 254
+ 1ee:	8c 93       	st	X, r24
+
+	CLR_BIT(DDRB,7); // INPUT
+ 1f0:	a7 e3       	ldi	r26, 0x37	; 55
+ 1f2:	b0 e0       	ldi	r27, 0x00	; 0
+ 1f4:	e7 e3       	ldi	r30, 0x37	; 55
+ 1f6:	f0 e0       	ldi	r31, 0x00	; 0
+ 1f8:	80 81       	ld	r24, Z
+ 1fa:	8f 77       	andi	r24, 0x7F	; 127
+ 1fc:	8c 93       	st	X, r24
+	CLR_BIT(DDRB,5); // INPUT
+ 1fe:	a7 e3       	ldi	r26, 0x37	; 55
+ 200:	b0 e0       	ldi	r27, 0x00	; 0
+ 202:	e7 e3       	ldi	r30, 0x37	; 55
+ 204:	f0 e0       	ldi	r31, 0x00	; 0
+ 206:	80 81       	ld	r24, Z
+ 208:	8f 7d       	andi	r24, 0xDF	; 223
+ 20a:	8c 93       	st	X, r24
+	CLR_BIT(DDRB,4); // INPUT
+ 20c:	a7 e3       	ldi	r26, 0x37	; 55
+ 20e:	b0 e0       	ldi	r27, 0x00	; 0
+ 210:	e7 e3       	ldi	r30, 0x37	; 55
+ 212:	f0 e0       	ldi	r31, 0x00	; 0
+ 214:	80 81       	ld	r24, Z
+ 216:	8f 7e       	andi	r24, 0xEF	; 239
+ 218:	8c 93       	st	X, r24
+
+	SET_BIT(DDRB,6); // OUTPUT
+ 21a:	a7 e3       	ldi	r26, 0x37	; 55
+ 21c:	b0 e0       	ldi	r27, 0x00	; 0
+ 21e:	e7 e3       	ldi	r30, 0x37	; 55
+ 220:	f0 e0       	ldi	r31, 0x00	; 0
+ 222:	80 81       	ld	r24, Z
+ 224:	80 64       	ori	r24, 0x40	; 64
+ 226:	8c 93       	st	X, r24
+	SPI_SlaveInit();
+ 228:	0e 94 a8 00 	call	0x150	; 0x150 <SPI_SlaveInit>
+	u8 LED_Spi;
+	while(1)
+	{
+		LED_Spi = SPI_SlaveReceive();
+ 22c:	0e 94 d2 00 	call	0x1a4	; 0x1a4 <SPI_SlaveReceive>
+ 230:	89 83       	std	Y+1, r24	; 0x01
+		if(LED_Spi){
+ 232:	89 81       	ldd	r24, Y+1	; 0x01
+ 234:	88 23       	and	r24, r24
+ 236:	41 f0       	breq	.+16     	; 0x248 <main+0x7e>
+			SET_BIT(PORTA,0);
+ 238:	ab e3       	ldi	r26, 0x3B	; 59
+ 23a:	b0 e0       	ldi	r27, 0x00	; 0
+ 23c:	eb e3       	ldi	r30, 0x3B	; 59
+ 23e:	f0 e0       	ldi	r31, 0x00	; 0
+ 240:	80 81       	ld	r24, Z
+ 242:	81 60       	ori	r24, 0x01	; 1
+ 244:	8c 93       	st	X, r24
+ 246:	f2 cf       	rjmp	.-28     	; 0x22c <main+0x62>
+		}
+		else
+		{
+
+			CLR_BIT(PORTA,0);
+ 248:	ab e3       	ldi	r26, 0x3B	; 59
+ 24a:	b0 e0       	ldi	r27, 0x00	; 0
+ 24c:	eb e3       	ldi	r30, 0x3B	; 59
+ 24e:	f0 e0       	ldi	r31, 0x00	; 0
+ 250:	80 81       	ld	r24, Z
+ 252:	8e 7f       	andi	r24, 0xFE	; 254
+ 254:	8c 93       	st	X, r24
+ 256:	ea cf       	rjmp	.-44     	; 0x22c <main+0x62>
+
+00000258 <_exit>:
+ 258:	f8 94       	cli
+
+0000025a <__stop_program>:
+ 25a:	ff cf       	rjmp	.-2      	; 0x25a <__stop_program>
